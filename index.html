@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake News Detector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    textarea {
+      width: 80%;
+      max-width: 600px;
+      height: 150px;
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      resize: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 4px solid #007bff;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      display: none;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fake News Detector</h1>
+  <textarea id="news-text" placeholder="Enter news content here"></textarea><br>
+  <button onclick="checkFakeNews()">Check</button>
+  <div class="loader" id="loader"></div>
+  <p id="result"></p>
+
+  <script>
+    async function checkFakeNews() {
+      const text = document.getElementById("news-text").value;
+      const loader = document.getElementById("loader");
+      const result = document.getElementById("result");
+
+      // Clear previous result
+      result.textContent = "";
+      result.className = "";
+
+      // Show loader
+      loader.style.display = "block";
+
+      try {
+        const response = await fetch("https://blackalphamw.pythonanywhere.com/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const resultData = await response.json();
+
+        // Hide loader
+        loader.style.display = "none";
+
+        result.textContent = resultData.error
+          ? `Error: ${resultData.error}`
+          : `Prediction: ${resultData.prediction}`;
+        result.className = resultData.error ? "error" : "success";
+      } catch (error) {
+        // Hide loader
+        loader.style.display = "none";
+
+        result.textContent = "Failed to connect to the server. Please try again later.";
+        result.className = "error";
+      }
+    }
+  </script>
+</body>
+</html>
